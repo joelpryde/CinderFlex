@@ -9,15 +9,15 @@
 
 #include "cinder/Cinder.h"
 #include "cinder/app/App.h"
-#include <flex.h>
+#include <NvFlex.h>
 
 namespace cinder { namespace flex {
 
 class CinderFlex
 {
-	FlexSolver *mSolver;
-	FlexTimers mTimers;
-	FlexParams mParams;
+	NvFlexSolver *mSolver;
+	NvFlexTimers mTimers;
+	NvFlexParams mParams;
 	std::vector<int> mActiveIndices;
 	std::vector<int> mPhases;
 
@@ -34,17 +34,17 @@ public:
 	void update(float elapsed);
 
 	// get current flex params
-	const FlexParams& getParams() const { return mParams; }
+	const NvFlexParams& getParams() const { return mParams; }
 
 	// set the flex params (for some reason this has strange results if you call it multiple times per solver instance)
-	void setParams(FlexParams& params) { mParams = params; flexSetParams(mSolver, &mParams); }
+	void setParams(NvFlexParams& params) { mParams = params; NvFlexSetParams(mSolver, &mParams); }
 
 	// set the particles positions and velocities (memory should be flexAlloced)
 	void setParticles(float* positions, float* velocities, unsigned int particleCount, bool fluid);
 
 	// get the current set of positions and velocities for the solver's particles (memory should be flexAlloced)
 	void getParticles(float* positions, float* velocities, unsigned int particleCount);
-	const FlexTimers& getTimers() const { return mTimers; }
+	const NvFlexTimers& getTimers() const { return mTimers; }
 };
 
 
