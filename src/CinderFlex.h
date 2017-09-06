@@ -11,9 +11,6 @@
 #include "cinder/app/App.h"
 #include <NvFlex.h>
 
-typedef std::shared_ptr<NvFlexLibrary> NvFlexLibraryRef;
-typedef std::shared_ptr<NvFlexSolver> NvFlexSolverRef;
-
 namespace cinder
 {
 	namespace flex
@@ -22,7 +19,7 @@ namespace cinder
 		class CinderFlex
 		{
 				NvFlexLibrary* mLibrary;
-				NvFlexSolverRef mSolver;
+				NvFlexSolver* mSolver;
 				NvFlexTimers mTimers;
 				NvFlexParams mParams;
 
@@ -42,7 +39,7 @@ namespace cinder
 				const NvFlexParams& getParams() const { return mParams; }
 
 				// set the flex params (for some reason this has strange results if you call it multiple times per solver instance)
-				void setParams( NvFlexParams& params ) { mParams = params; NvFlexSetParams( mSolver.get(), &mParams ); }
+				void setParams( NvFlexParams& params ) { mParams = params; NvFlexSetParams( mSolver, &mParams ); }
 
 				// set the particles positions and velocities (memory should be flexAlloced)
 				void setParticles( NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount, bool fluid );
