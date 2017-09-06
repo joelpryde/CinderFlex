@@ -11,14 +11,16 @@ using namespace std;
 using namespace ci;
 using namespace ci::app;
 
-namespace cinder {
-	namespace  flex {
+namespace cinder
+{
+	namespace  flex
+	{
 
 		CinderFlex::CinderFlex()
 		{
 			mLibrary = nullptr;
 			mSolver = nullptr;
-			memset(&mTimers, 0, sizeof(mTimers));
+			memset( &mTimers, 0, sizeof( mTimers ) );
 		}
 
 		void CinderFlex::init()
@@ -26,15 +28,15 @@ namespace cinder {
 			mLibrary = NvFlexInit();
 		}
 
-		void CinderFlex::setupParticles(unsigned int particleCount, unsigned int diffuseParticleCount)
+		void CinderFlex::setupParticles( unsigned int particleCount, unsigned int diffuseParticleCount )
 		{
 			// create new solver
 			NvFlexSolverDesc solverDesc;
-			NvFlexSetSolverDescDefaults(&solverDesc);
+			NvFlexSetSolverDescDefaults( &solverDesc );
 			solverDesc.maxParticles = particleCount;
 			solverDesc.maxDiffuseParticles = 0;
 
-			mSolver = std::shared_ptr<NvFlexSolver>(NvFlexCreateSolver(mLibrary, &solverDesc));
+			mSolver = std::shared_ptr<NvFlexSolver>( NvFlexCreateSolver( mLibrary, &solverDesc ) );
 
 			// setup some decent default params
 			float particleSize = 0.1f;
@@ -82,44 +84,44 @@ namespace cinder {
 			mParams.solidRestDistance = particleSize;
 		}
 
-		void CinderFlex::update(float elapsed)
+		void CinderFlex::update( float elapsed )
 		{
 			// tick solver
-			NvFlexUpdateSolver(mSolver.get(), elapsed, 1, NULL); // &mTimers);
+			NvFlexUpdateSolver( mSolver.get(), elapsed, 1, NULL ); // &mTimers);
 		}
 
-		void CinderFlex::setParticles(NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount, bool fluid)
+		void CinderFlex::setParticles( NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount, bool fluid )
 		{
 			// unmap buffers
-			NvFlexUnmap(positions);
-			NvFlexUnmap(velocities);
-			NvFlexUnmap(phases);
+			NvFlexUnmap( positions );
+			NvFlexUnmap( velocities );
+			NvFlexUnmap( phases );
 
 			// set active particles
-			NvFlexBuffer* activeBuffer = NvFlexAllocBuffer(mLibrary, particleCount, sizeof(int), eNvFlexBufferHost);
-			int* activeIndices = (int*)NvFlexMap(activeBuffer, eNvFlexMapWait);
+			NvFlexBuffer* activeBuffer = NvFlexAllocBuffer( mLibrary, particleCount, sizeof( int ), eNvFlexBufferHost );
+			int* activeIndices = ( int* )NvFlexMap( activeBuffer, eNvFlexMapWait );
 
-			for (int i = 0; i < particleCount; ++i) {
+			for( int i = 0; i < particleCount; ++i ) {
 				activeIndices[i] = i;
 			}
 
-			NvFlexUnmap(activeBuffer);
+			NvFlexUnmap( activeBuffer );
 
-			NvFlexSetActive(mSolver.get(), activeBuffer, NULL);
-			NvFlexSetActiveCount(mSolver.get(), particleCount);
+			NvFlexSetActive( mSolver.get(), activeBuffer, NULL );
+			NvFlexSetActiveCount( mSolver.get(), particleCount );
 
 			// write to device (async)
-			NvFlexSetParticles(mSolver.get(), positions, NULL);
-			NvFlexSetVelocities(mSolver.get(), velocities, NULL);
-			NvFlexSetPhases(mSolver.get(), phases, NULL);
+			NvFlexSetParticles( mSolver.get(), positions, NULL );
+			NvFlexSetVelocities( mSolver.get(), velocities, NULL );
+			NvFlexSetPhases( mSolver.get(), phases, NULL );
 		}
 
-		void CinderFlex::getParticles(NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount)
+		void CinderFlex::getParticles( NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount )
 		{
 			// kick off async memory reads from device
-			NvFlexGetParticles(mSolver.get(), positions, NULL);
-			NvFlexGetVelocities(mSolver.get(), velocities, NULL);
-			NvFlexGetPhases(mSolver.get(), phases, NULL);
+			NvFlexGetParticles( mSolver.get(), positions, NULL );
+			NvFlexGetVelocities( mSolver.get(), velocities, NULL );
+			NvFlexGetPhases( mSolver.get(), phases, NULL );
 		}
 
 	}
