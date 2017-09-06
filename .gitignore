@@ -1,0 +1,27 @@
+# Mac OS X cruft
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.user
+project.xcworkspace
+xcuserdata/
+*.xccheckout
+.DS_Store
+
+build/
+
+# Windows cruft
+*.suo
+*.ncb
+*.sdf
+*.VC.opendb
+*.VC.db
+*.opensdf
+Debug/
+Release/
+Debug_ANGLE/
+Release_ANGLE/
+Debug_Shared/
+Release_Shared/
+ipch/
+**/vc2013/enc_temp_folder/**

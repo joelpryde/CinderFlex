@@ -14,10 +14,10 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-class CinderFlexApp : public App 
+class CinderFlexApp : public App
 {
 	flex::CinderFlex mFlex;
-	
+
 	unsigned int mParticleCount;
 	float mParticleSize;
 	bool mFluid;
@@ -27,8 +27,9 @@ class CinderFlexApp : public App
 	unsigned int mNumPlanes;
 	ColorA mColor;
 
-	vec4*				mPositions;
-	vec3*				mVelocities;
+	NvFlexBuffer*		mPositions;
+	NvFlexBuffer*		mVelocities;
+	NvFlexBuffer*		mPhases;
 
 	CameraPersp			mCamera;
 	CameraUi			mCamUi;
@@ -44,9 +45,9 @@ class CinderFlexApp : public App
 
 	void setupParticles();
 
-  public:
+public:
 	void setup() override;
-	void mouseDown( MouseEvent event ) override;
+	void mouseDown(MouseEvent event) override;
 	void mouseDrag(MouseEvent event) override;
 	void keyDown(KeyEvent event) override;
 	void resize() override;
@@ -56,21 +57,32 @@ class CinderFlexApp : public App
 
 void CinderFlexApp::setupParticles()
 {
+	NvFlexFreeBuffer(mPositions);
+	NvFlexFreeBuffer(mVelocities);
+	NvFlexFreeBuffer(mPhases);
+
+	mPositions = nullptr;
+	mVelocities = nullptr;
+	mPhases = nullptr;
+
 	mFlex.setupParticles(mParticleCount, 0);
 
-	if (mPositions)
-		flexFree(mPositions);
-	if (mVelocities)
-		flexFree(mVelocities);
+	mPositions = NvFlexAllocBuffer(mFlex.getLibrary(), mParticleCount, sizeof(vec4), eNvFlexBufferHost);
+	mVelocities = NvFlexAllocBuffer(mFlex.getLibrary(), mParticleCount, sizeof(vec3), eNvFlexBufferHost);
+	mPhases = NvFlexAllocBuffer(mFlex.getLibrary(), mParticleCount, sizeof(int), eNvFlexBufferHost);
+
+	// map buffers for reading / writing
+	vec4* positions = (vec4*)NvFlexMap(mPositions, eNvFlexMapWait);
+	vec3* velocities = (vec3*)NvFlexMap(mVelocities, eNvFlexMapWait);
+	int* phases = (int*)NvFlexMap(mPhases, eNvFlexMapWait);
 
 	// set positions in a grid and some random velocities to start particles with
-	mPositions = (vec4*)flexAlloc(mParticleCount*sizeof(vec4));
 	float mass = 1.0f;
 	float x = 0.0f, y = 0.0f, z = 0.0f;
 	float delta = mParticleSize;
 	for (size_t i = 0; i < mParticleCount; ++i)
 	{
-		mPositions[i] = vec4(x, y, z, 1 / mass);
+		positions[i] = vec4(x, y, z, 1.0f / mass);
 		x += delta;
 		if (x > 5.0f)
 		{
@@ -84,34 +96,40 @@ void CinderFlexApp::setupParticles()
 			z += delta;
 		}
 	}
-	mVelocities = (vec3*)flexAlloc(mParticleCount*sizeof(vec3));
+
+	int phase = NvFlexMakePhase(0, mFluid ? (eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid) : eNvFlexPhaseSelfCollide);
+
 	for (size_t i = 0; i < mParticleCount; ++i)
-		mVelocities[i] = randVec3();
-	mFlex.setParticles((float*)mPositions, (float*)mVelocities, mParticleCount, mFluid);
+	{
+		velocities[i] = randVec3();
+		phases[i] = phase;
+	}
 
 	// setup some parameters
 	float boxSize = 4.0f;
 	vec3 up = vec3(0.0f, 1.0f, 0.0f);
-	FlexParams params = mFlex.getParams();
-	params.mRadius = mParticleSize * 2.0f;
-	params.mSolidRestDistance = mParticleSize;
+	NvFlexParams params = mFlex.getParams();
+	params.radius = mParticleSize * 2.0f;
+	params.solidRestDistance = mParticleSize;
+
 	if (mFluid)
 	{
-		params.mFluidRestDistance = mParticleSize;
-		params.mDynamicFriction = mDynamicFriction;
-		params.mFluid = true;
-		params.mViscosity = mViscosity;
-		params.mNumIterations = 3;
-		params.mVorticityConfinement = mVorticityConfinement;
-		params.mAnisotropyScale = 25.0f;
+		params.fluidRestDistance = mParticleSize;
+		params.dynamicFriction = mDynamicFriction;
+		params.viscosity = mViscosity;
+		params.numIterations = 3;
+		params.vorticityConfinement = mVorticityConfinement;
+		params.anisotropyScale = 25.0f;
 	}
-	(vec4&)params.mPlanes[0] = vec4(up.x, up.y, up.z, 0.0f);
-	(vec4&)params.mPlanes[1] = vec4(0.0f, 0.0f, 1.0f, boxSize);
-	(vec4&)params.mPlanes[2] = vec4(1.0f, 0.0f, 0.0f, boxSize);
-	(vec4&)params.mPlanes[3] = vec4(-1.0f, 0.0f, 0.0f, boxSize);
-	(vec4&)params.mPlanes[4] = vec4(0.0f, 0.0f, -1.0f, boxSize);
-	(vec4&)params.mPlanes[5] = vec4(0.0f, -1.0f, 0.0f, boxSize);
-	params.mNumPlanes = mNumPlanes;
+
+	(vec4&)params.planes[0] = vec4(up.x, up.y, up.z, 0.0f);
+	(vec4&)params.planes[1] = vec4(0.0f, 0.0f, 1.0f, boxSize);
+	(vec4&)params.planes[2] = vec4(1.0f, 0.0f, 0.0f, boxSize);
+	(vec4&)params.planes[3] = vec4(-1.0f, 0.0f, 0.0f, boxSize);
+	(vec4&)params.planes[4] = vec4(0.0f, 0.0f, -1.0f, boxSize);
+	(vec4&)params.planes[5] = vec4(0.0f, -1.0f, 0.0f, boxSize);
+
+	params.numPlanes = mNumPlanes;
 	mFlex.setParams(params);
 
 	// camera
@@ -123,7 +141,7 @@ void CinderFlexApp::setupParticles()
 	mShader = gl::GlslProg::create(loadAsset("shader.vert"), loadAsset("shader.frag"));
 
 	// create plane vbos
-	float planeSize = boxSize/2.0f;
+	float planeSize = boxSize / 2.0f;
 	mPlaneBatch[0] = gl::Batch::create(gl::VboMesh::create(geom::Plane().origin(vec3(0.0f, 0.0f, 0.0f)).normal(up).size(vec2(planeSize))), mPlaneShader);
 	mPlaneBatch[1] = gl::Batch::create(gl::VboMesh::create(geom::Plane().origin(vec3(0.0f, 0.0f + planeSize / 2.0f, -boxSize / 4.0f)).normal(vec3(0.0f, 0.0f, 1.0f)).size(vec2(planeSize))), mPlaneShader);
 	mPlaneBatch[2] = gl::Batch::create(gl::VboMesh::create(geom::Plane().origin(vec3(-boxSize / 4.0f, 0.0f + planeSize / 2.0f, 0.0f)).normal(vec3(1.0f, 0.0f, 0.0f)).size(vec2(planeSize))), mPlaneShader);
@@ -133,7 +151,7 @@ void CinderFlexApp::setupParticles()
 
 	// create particle batch
 	gl::VboMeshRef mesh = gl::VboMesh::create(geom::Sphere().subdivisions(10).radius(mParticleSize / 4.0f));
-	mInstanceDataVbo = gl::Vbo::create(GL_ARRAY_BUFFER, mParticleCount * sizeof(vec4), mPositions, GL_DYNAMIC_DRAW);
+	mInstanceDataVbo = gl::Vbo::create(GL_ARRAY_BUFFER, mParticleCount * sizeof(vec4), positions, GL_DYNAMIC_DRAW);
 	geom::BufferLayout instanceDataLayout;
 	instanceDataLayout.append(geom::Attrib::CUSTOM_0, 4, 0, 0, 1 /* per instance */);
 	mesh->appendVbo(instanceDataLayout, mInstanceDataVbo);
@@ -144,6 +162,8 @@ void CinderFlexApp::setup()
 {
 	mPositions = NULL;
 	mVelocities = NULL;
+	mPhases = NULL;
+
 	setWindowSize(ivec2(1024, 768));
 	mParticleCount = 60000;
 	mParticleSize = 0.1f;
@@ -153,7 +173,7 @@ void CinderFlexApp::setup()
 	mVorticityConfinement = 0.0f;
 	mNumPlanes = 3;
 	mColor = ColorA(1.0f, 1.0f, 1.0f, 1.0f);
-		
+
 	// init flex
 	mFlex.init();
 
@@ -177,7 +197,7 @@ void CinderFlexApp::setup()
 	mGuiParams->addSeparator();
 }
 
-void CinderFlexApp::mouseDown( MouseEvent event )
+void CinderFlexApp::mouseDown(MouseEvent event)
 {
 	mCamUi.mouseDown(event);
 }
@@ -199,16 +219,27 @@ void CinderFlexApp::keyDown(KeyEvent event)
 
 void CinderFlexApp::update()
 {
-	// do flex update
-	mFlex.update(1.0f/60.0f);
-	
-	// get particle positions and velocities
-	mFlex.getParticles((float*)mPositions, (float*)mVelocities, mParticleCount);
+	mFlex.setParticles(mPositions, mVelocities, mPhases, mParticleCount, mFluid);
 
-	// update our instance positions; map our instance data VBO, write new positions, unmap
-	vec3 *vboPositions = (vec3*)mInstanceDataVbo->mapReplace();
-	memcpy(vboPositions, mPositions, sizeof(vec4) * mParticleCount);
+	// do flex update
+	mFlex.update(1.0f / 60.0f);
+
+	// get particle positions and velocities
+	mFlex.getParticles(mPositions, mVelocities, mPhases, mParticleCount);
+
+	// update our instance positions; map our instance data VBO, write new positions, unmap	
+	auto vboPositions = (vec4*)mInstanceDataVbo->mapReplace();
+
+	vec4* positions = (vec4*)NvFlexMap(mPositions, eNvFlexMapWait);
+	memcpy(vboPositions, positions, sizeof(vec4) * mParticleCount);
+
+	//for (int i = 0; i < mParticleCount; i++) {
+	//	*vboPositions = positions[i];
+	//	vboPositions++;
+	//}
+
 	mInstanceDataVbo->unmap();
+	NvFlexUnmap(mPositions);
 }
 
 void CinderFlexApp::resize()
@@ -218,7 +249,7 @@ void CinderFlexApp::resize()
 
 void CinderFlexApp::draw()
 {
-	gl::clear( Color( 0, 0, 0 ) ); 
+	gl::clear(Color(0, 0, 0));
 	gl::setMatricesWindow(getWindowSize());
 	gl::drawString("FPS: " + std::to_string(getAverageFps()), vec2(getWindowWidth() - 50.0f, 10.0f), Color::white());
 	gl::setMatrices(mCamera);
@@ -228,7 +259,7 @@ void CinderFlexApp::draw()
 	gl::color(1.0f, 1.0f, 1.0f, 0.2f);
 	for (size_t p = 0; p < mNumPlanes; p++)
 		mPlaneBatch[p]->draw();
-	
+
 	// draw particles
 	gl::color(mColor);
 	gl::enableDepthWrite();
@@ -238,4 +269,4 @@ void CinderFlexApp::draw()
 	mGuiParams->draw();
 }
 
-CINDER_APP( CinderFlexApp, RendererGl )
+CINDER_APP(CinderFlexApp, RendererGl)

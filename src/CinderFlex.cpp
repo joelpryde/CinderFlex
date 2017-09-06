@@ -11,115 +11,116 @@ using namespace std;
 using namespace ci;
 using namespace ci::app;
 
-namespace cinder { namespace  flex {
+namespace cinder {
+	namespace  flex {
 
-CinderFlex::CinderFlex()
-{
-	mSolver = NULL;
-	memset(&mTimers, 0, sizeof(mTimers));
-}
+		CinderFlex::CinderFlex()
+		{
+			mLibrary = nullptr;
+			mSolver = nullptr;
+			memset(&mTimers, 0, sizeof(mTimers));
+		}
 
-void CinderFlex::init()
-{
-	flexInit();
-}
+		void CinderFlex::init()
+		{
+			mLibrary = NvFlexInit();
+		}
 
-void CinderFlex::setupParticles(unsigned int particleCount, unsigned int diffuseParticleCount)
-{
-	flexSetFence();
-	flexWaitFence();
+		void CinderFlex::setupParticles(unsigned int particleCount, unsigned int diffuseParticleCount)
+		{
+			// create new solver
+			NvFlexSolverDesc solverDesc;
+			NvFlexSetSolverDescDefaults(&solverDesc);
+			solverDesc.maxParticles = particleCount;
+			solverDesc.maxDiffuseParticles = 0;
 
-	// create new solver
-	if (mSolver)
-		flexDestroySolver(mSolver);
-	mSolver = flexCreateSolver(particleCount, diffuseParticleCount);
+			mSolver = std::shared_ptr<NvFlexSolver>(NvFlexCreateSolver(mLibrary, &solverDesc));
 
-	// setup some decent default params
-	float particleSize = 0.1f;
-	mParams.mGravity[0] = 0.0f;
-	mParams.mGravity[1] = -9.8f;
-	mParams.mGravity[2] = 0.0f;
-	mParams.mWind[0] = 0.0f;
-	mParams.mWind[1] = 0.0f;
-	mParams.mWind[2] = 0.0f;
-	mParams.mViscosity = 0.0f;
-	mParams.mDynamicFriction = 0.0f;
-	mParams.mStaticFriction = 0.0f;
-	mParams.mParticleFriction = 0.0f; // scale friction between particles by default
-	mParams.mFreeSurfaceDrag = 0.0f;
-	mParams.mDrag = 0.0f;
-	mParams.mLift = 0.0f;
-	mParams.mNumIterations = 3;
-	mParams.mAnisotropyScale = 1.0f;
-	mParams.mAnisotropyMin = 0.1f;
-	mParams.mAnisotropyMax = 2.0f;
-	mParams.mSmoothing = 1.0f;
-	mParams.mDissipation = 0.0f;
-	mParams.mDamping = 0.0f;
-	mParams.mParticleCollisionMargin = 0.0f;
-	mParams.mShapeCollisionMargin = 0.0f;
-	mParams.mCollisionDistance = 0.0f;
-	mParams.mPlasticThreshold = 0.0f;
-	mParams.mPlasticCreep = 0.0f;
-	mParams.mFluid = false;
-	mParams.mSleepThreshold = 0.0f;
-	mParams.mShockPropagation = 0.0f;
-	mParams.mRestitution = 0.0f;
-	mParams.mMaxSpeed = FLT_MAX;
-	mParams.mRelaxationMode = eFlexRelaxationLocal;
-	mParams.mRelaxationFactor = 1.0f;
-	mParams.mSolidPressure = 1.0f;
-	mParams.mAdhesion = 0.0f;
-	mParams.mCohesion = 0.025f;
-	mParams.mSurfaceTension = 0.0f;
-	mParams.mVorticityConfinement = 0.0f;
-	mParams.mBuoyancy = 1.0f;
-	mParams.mDiffuseThreshold = 100.0f;
-	mParams.mDiffuseBuoyancy = 1.0f;
-	mParams.mDiffuseDrag = 0.8f;
-	mParams.mDiffuseBallistic = 16;
-	mParams.mDiffuseSortAxis[0] = 0.0f;
-	mParams.mDiffuseSortAxis[1] = 0.0f;
-	mParams.mDiffuseSortAxis[2] = 0.0f;
-	mParams.mDiffuseLifetime = 2.0f;
-	mParams.mInertiaBias = 0.001f;
-	mParams.mRadius = particleSize * 2.0f;
-	mParams.mFluidRestDistance = particleSize;
-	mParams.mSolidRestDistance = particleSize;
-}
+			// setup some decent default params
+			float particleSize = 0.1f;
+			mParams.gravity[0] = 0.0f;
+			mParams.gravity[1] = -9.8f;
+			mParams.gravity[2] = 0.0f;
+			mParams.wind[0] = 0.0f;
+			mParams.wind[1] = 0.0f;
+			mParams.wind[2] = 0.0f;
+			mParams.viscosity = 0.0f;
+			mParams.dynamicFriction = 0.0f;
+			mParams.staticFriction = 0.0f;
+			mParams.particleFriction = 0.0f; // scale friction between particles by default
+			mParams.freeSurfaceDrag = 0.0f;
+			mParams.drag = 0.0f;
+			mParams.lift = 0.0f;
+			mParams.numIterations = 3;
+			mParams.anisotropyScale = 1.0f;
+			mParams.anisotropyMin = 0.1f;
+			mParams.anisotropyMax = 2.0f;
+			mParams.smoothing = 1.0f;
+			mParams.dissipation = 0.0f;
+			mParams.damping = 0.0f;
+			mParams.particleCollisionMargin = 0.0f;
+			mParams.shapeCollisionMargin = 0.0f;
+			mParams.collisionDistance = 0.0f;
+			mParams.sleepThreshold = 0.0f;
+			mParams.shockPropagation = 0.0f;
+			mParams.restitution = 0.0f;
+			mParams.maxSpeed = FLT_MAX;
+			mParams.relaxationMode = eNvFlexRelaxationLocal;
+			mParams.relaxationFactor = 1.0f;
+			mParams.solidPressure = 1.0f;
+			mParams.adhesion = 0.0f;
+			mParams.cohesion = 0.025f;
+			mParams.surfaceTension = 0.0f;
+			mParams.vorticityConfinement = 0.0f;
+			mParams.buoyancy = 1.0f;
+			mParams.diffuseThreshold = 100.0f;
+			mParams.diffuseBuoyancy = 1.0f;
+			mParams.diffuseDrag = 0.8f;
+			mParams.diffuseBallistic = 16;
+			mParams.radius = particleSize * 2.0f;
+			mParams.fluidRestDistance = particleSize;
+			mParams.solidRestDistance = particleSize;
+		}
 
-void CinderFlex::update(float elapsed)
-{
-	// tick solver
-	flexUpdateSolver(mSolver, elapsed, 1, NULL); // &mTimers);
-}
+		void CinderFlex::update(float elapsed)
+		{
+			// tick solver
+			NvFlexUpdateSolver(mSolver.get(), elapsed, 1, NULL); // &mTimers);
+		}
 
-void CinderFlex::setParticles(float* positions, float* velocities, unsigned int particleCount, bool fluid)
-{
-	flexSetParticles(mSolver, positions, particleCount, eFlexMemoryHostAsync);
-	flexSetVelocities(mSolver, velocities, particleCount, eFlexMemoryHostAsync);
+		void CinderFlex::setParticles(NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount, bool fluid)
+		{
+			// unmap buffers
+			NvFlexUnmap(positions);
+			NvFlexUnmap(velocities);
+			NvFlexUnmap(phases);
 
-	mActiveIndices.resize(particleCount);
-	for (size_t i = 0; i < mActiveIndices.size(); ++i)
-		mActiveIndices[i] = i;
-	flexSetActive(mSolver, &mActiveIndices[0], particleCount, eFlexMemoryHost);
+			// set active particles
+			NvFlexBuffer* activeBuffer = NvFlexAllocBuffer(mLibrary, particleCount, sizeof(int), eNvFlexBufferHost);
+			int* activeIndices = (int*)NvFlexMap(activeBuffer, eNvFlexMapWait);
 
-	int phase = flexMakePhase(0, fluid ? (eFlexPhaseSelfCollide | eFlexPhaseFluid) : eFlexPhaseSelfCollide);
-	mPhases.resize(particleCount);
-	for (size_t i = 0; i < mPhases.size(); ++i)
-		mPhases[i] = phase;
-	flexSetPhases(mSolver, &mPhases[0], particleCount, eFlexMemoryHost);
-}
+			for (int i = 0; i < particleCount; ++i) {
+				activeIndices[i] = i;
+			}
 
-void CinderFlex::getParticles(float* positions, float* velocities, unsigned int particleCount)
-{
-	// kick off async memory reads from device
-	flexGetParticles(mSolver, positions, particleCount, eFlexMemoryHostAsync);
-	flexGetVelocities(mSolver, velocities, particleCount, eFlexMemoryHostAsync);
+			NvFlexUnmap(activeBuffer);
 
-	// wait for GPU to finish working (can perform async. CPU work here)
-	flexSetFence();
-	flexWaitFence();
-}
+			NvFlexSetActive(mSolver.get(), activeBuffer, NULL);
+			NvFlexSetActiveCount(mSolver.get(), particleCount);
 
-}}  // namespace flex // namespace cinder
+			// write to device (async)
+			NvFlexSetParticles(mSolver.get(), positions, NULL);
+			NvFlexSetVelocities(mSolver.get(), velocities, NULL);
+			NvFlexSetPhases(mSolver.get(), phases, NULL);
+		}
+
+		void CinderFlex::getParticles(NvFlexBuffer* positions, NvFlexBuffer* velocities, NvFlexBuffer* phases, unsigned int particleCount)
+		{
+			// kick off async memory reads from device
+			NvFlexGetParticles(mSolver.get(), positions, NULL);
+			NvFlexGetVelocities(mSolver.get(), velocities, NULL);
+			NvFlexGetPhases(mSolver.get(), phases, NULL);
+		}
+
+	}
+}  // namespace flex // namespace cinder
