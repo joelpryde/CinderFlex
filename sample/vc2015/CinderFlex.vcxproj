@@ -94,8 +94,8 @@
       <AdditionalIncludeDirectories>$(CINDER_PATH)\include;..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;OpenGL32.lib;$(FLEX_PATH)/lib/$(PlatformName)/flex$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/lib/$(PlatformName)/flexExt$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/external/freeglut/lib/freeglut.lib;$(FLEX_PATH)/external/glew/lib/$(PlatformName)/glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CUDA_PATH)/lib/$(PlatformName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;OpenGL32.lib;NvFlexDebugCUDA_x86.lib;NvFlexDebugD3D_x86.lib;NvFlexDeviceDebug_x86.lib;NvFlexExtDebugCUDA_x86.lib;NvFlexExtDebugD3D_x86.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CINDER_PATH)\lib\msw\$(PlatformTarget)\$(Configuration)\$(PlatformToolset)\;$(CUDA_PATH)/lib/$(PlatformName);$(FLEX_PATH)/lib/win32/;$(FLEX_PATH)/external/glew/lib/win32</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -104,7 +104,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT;LIBCPMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(FLEX_PATH)\bin\$(PlatformName)\*.* $(OutDir) /Y /C</Command>
+      <Command>xcopy $(FLEX_PATH)\bin\win32\*.* $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -124,8 +124,8 @@
       <AdditionalIncludeDirectories>$(CINDER_PATH)\include;..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;OpenGL32.lib;$(FLEX_PATH)/lib/$(PlatformName)/flex$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/lib/$(PlatformName)/flexExt$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/external/freeglut/lib/freeglut.lib;$(FLEX_PATH)/external/glew/lib/$(PlatformName)/glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CUDA_PATH)/lib/$(PlatformName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;OpenGL32.lib;NvFlexDebugCUDA_x64.lib;NvFlexDebugD3D_x64.lib;NvFlexDeviceDebug_x64.lib;NvFlexExtDebugCUDA_x64.lib;NvFlexExtDebugD3D_x64.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CINDER_PATH)\lib\msw\$(PlatformTarget)\$(Configuration)\$(PlatformToolset)\;$(CUDA_PATH)/lib/$(PlatformName);$(FLEX_PATH)/lib/win64/;$(FLEX_PATH)/external/glew/lib/x64</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -134,7 +134,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT;LIBCPMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(FLEX_PATH)\bin\$(PlatformName)\*.* $(OutDir) /Y</Command>
+      <Command>xcopy $(FLEX_PATH)\bin\win64\*.* $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,8 +154,8 @@
       <AdditionalIncludeDirectories>$(CINDER_PATH)\include;..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder-$(PlatformToolset).lib;OpenGL32.lib;$(FLEX_PATH)/lib/$(PlatformName)/flex$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/lib/$(PlatformName)/flexExt$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/external/freeglut/lib/freeglut.lib;$(FLEX_PATH)/external/glew/lib/$(PlatformName)/glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CUDA_PATH)/lib/$(PlatformName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;OpenGL32.lib;NvFlexReleaseCUDA_x86.lib;NvFlexReleaseD3D_x86.lib;NvFlexDeviceRelease_x86.lib;NvFlexExtReleaseCUDA_x86.lib;NvFlexExtReleaseD3D_x86.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CINDER_PATH)\lib\msw\$(PlatformTarget)\$(Configuration)\$(PlatformToolset)\;$(CUDA_PATH)/lib/$(PlatformName);$(FLEX_PATH)/lib/win32/;$(FLEX_PATH)/external/glew/lib/win32</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
@@ -166,7 +166,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(FLEX_PATH)\bin\$(PlatformName)\*.* $(OutDir) /Y /C</Command>
+      <Command>xcopy $(FLEX_PATH)\bin\win32\*.* $(OutDir) /Y /C</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -187,8 +187,8 @@
       <AdditionalIncludeDirectories>$(CINDER_PATH)\include;..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder-$(PlatformToolset).lib;OpenGL32.lib;$(FLEX_PATH)/lib/$(PlatformName)/flex$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/lib/$(PlatformName)/flexExt$(Configuration)_$(PlatformTarget).lib;$(FLEX_PATH)/external/freeglut/lib/freeglut.lib;$(FLEX_PATH)/external/glew/lib/$(PlatformName)/glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CUDA_PATH)/lib/$(PlatformName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;OpenGL32.lib;NvFlexReleaseCUDA_x64.lib;NvFlexReleaseD3D_x64.lib;NvFlexDeviceRelease_x64.lib;NvFlexExtReleaseCUDA_x64.lib;NvFlexExtReleaseD3D_x64.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(CINDER_PATH)\lib\msw\$(PlatformTarget)\$(Configuration)\$(PlatformToolset)\;$(CUDA_PATH)/lib/$(PlatformName);$(FLEX_PATH)/lib/win64/;$(FLEX_PATH)/external/glew/lib/x64</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
@@ -200,7 +200,7 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(FLEX_PATH)\bin\$(PlatformName)\*.* $(OutDir) /Y</Command>
+      <Command>xcopy $(FLEX_PATH)\bin\win64\*.* $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
